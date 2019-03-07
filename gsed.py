@@ -4,7 +4,8 @@ import sys
 import os
 import unittest
 from optparse import OptionParser
-from os import listdir
+from os import listdir, path
+from pathlib import Path
 
 def error_handler(e):
     print("Error: gsed: ", e, file=sys.stderr, flush=True)
@@ -14,11 +15,18 @@ class Gsed:
     __slots__ = 'search', 'replace', 'files', 'dirs', 'options'
 
     def __init__(self, args, options):
+        self.init_slots(options)
+        self.init_loop_args(args)
+
+    def init_slots(self, options):
         self.search = ""
         self.replace = ""
         self.files = []
         self.dirs = []
         self.options = options
+
+    # deal with link TODO
+    def init_loop_args(self, args):
         is_path = False
         for arg in args:
             if len(self.search) == 0:
@@ -27,16 +35,31 @@ class Gsed:
                 self.replace = arg
             else:
                 is_path = True
-                if os.path.isfile(arg):
+                path = Path(arg)
+                if path.exists() == False:
+                    error_handler("File not found: " + arg)
+                elif path.is_file():
                     self.files.append(arg)
-                elif os.path.isdir(arg):
+                elif path.is_dir():
                     self.dirs.append(arg)
                 else:
-                    error_handler("Path doesn't exist: " + arg)
+                    error_handler("Wrong type of file: " + arg)
         if is_path == False:
             self.dirs.append("./")
-        if is_path == True and len(self.files) == 0 and len(self.dirs) == 0:
-            sys.exit(2)
+            return
+        if self.options.flag_recursive == True:
+            self.remove_duplicates_dirs()
+        #self.remove_duplicates_files() TODO
+
+    def remove_duplicates_dirs(self):
+        for d1 in self.dirs:
+            for d2 in self.dirs:
+                if d2 == d1:
+                    continue
+                if (Path(d2) in Path(d1).parents) == True:
+                    self.dirs.remove(d1)
+                    self.remove_duplicates_dirs()
+                    return
 
     # debug print
     def print(self):
@@ -106,7 +129,8 @@ def main():
         sys.exit(1)
 
     gsed = Gsed(args, options)
-    gsed.search_replace()
+    gsed.print()
+    #gsed.search_replace()
     sys.exit(0)
 
 
