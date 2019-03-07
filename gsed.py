@@ -4,6 +4,7 @@ import sys
 import os
 import unittest
 from optparse import OptionParser
+from os import listdir
 
 def print_help():
     print("help", flush=True)
@@ -34,8 +35,7 @@ class Gsed:
                 elif os.path.isdir(arg):
                     self.dirs.append(arg)
                 else:
-                    print("Error: gsed: Path doesn't exist:", path,
-                          file=sys.stderr, flush=True)
+                    error_handler("Path doesn't exist: " + arg)
         if is_path == False:
             self.dirs.append("./")
         if is_path == True and len(self.files) == 0 and len(self.dirs) == 0:
@@ -49,11 +49,27 @@ class Gsed:
 
 
     def search_replace_dirs(self):
+        if len(self.dirs) == 0:
+            return
+        dirs_tmp = []
         for dirs in self.dirs:
-            for root, dirs, files in os.walk(dirs, onerror=error_handler):
-                print("root", root, "dirs", dirs, "files", files)
+            parse_dir = [d for d in listdir(dirs)]
+            for file in parse_dir:
+                if os.path.isfile(file):
+                    self.files.append(file)
+                elif os.path.isdir(file):
+                    if (self.options.flag_recursive == True and
+                            (file[0] != '.' or self.options.flag_all == True)
+                            and file != "." and file != ".."):
+                        dirs_tmp.append(file)
+        self.dirs = dirs_tmp
+        for file in self.files:
+            self.search_replace_files()
+        if self.options.flag_recursive == True:
+            self.search_replace_dirs()
 
-    def search_replace_file(self):
+
+    def search_replace_files(self):
         for files in self.files:
             with open(files, "r+") as f:
                 content = f.read()
@@ -63,8 +79,8 @@ class Gsed:
                 f.truncate()
                 f.close()
 
-    def process(self):
-        self.search_replace_files()
+    def search_replace(self):
+        #        self.search_replace_files()
         self.search_replace_dirs()
         #self.process_dirs() TODO
 
@@ -73,18 +89,18 @@ def main():
                           version="%prog 1.0")
     parser.add_option("-a", "--all",
                       action="store_true",
-                      dest="all",
+                      dest="flag_all",
                       default=False,
                       help="do not ignore entries starting with .")
     parser.add_option("-R", "--recursive",
                       action="store_true",
-                      dest="recursive",
+                      dest="flag_recursive",
                       default=False,
                       help="search and replace in files subdirectories recursively")
     # deal with infinite recursion TODO
     parser.add_option("-l", "--link",
                       action="store_true",
-                      dest="link",
+                      dest="flag_link",
                       default=False,
                       help="follow links")
 
@@ -92,8 +108,11 @@ def main():
 
     if len(args) < 2:
         parser.error("wrong number of arguments")
+        sys.exit(1)
+
     gsed = Gsed(args, options)
-    gsed.process_dirs()
+    gsed.search_replace()
+    sys.exit(0)
     #gsed.print()
     #gsed.process()
 
