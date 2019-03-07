@@ -24,3 +24,26 @@ def test_basic_case1():
     content_compare = read_file(path_compare)
 
     assert content_compare == content
+
+def test_basic_case2():
+
+    dir_path = "../tests_files/basic/case2/t/"
+    path =         [
+        "../tests_files/basic/case2/t/1",
+        "../tests_files/basic/case2/t/2"
+    ]
+    path_compare = [
+        "../tests_files/basic/case2/tcompare/1",
+        "../tests_files/basic/case2/tcompare/2"
+    ]
+    res = subprocess.run("python ../gsed.py lol mdr " + dir_path,
+                         shell=True, capture_output=True)
+    assert res.returncode == 0
+
+    i = 0
+    while i < len(path):
+        content = read_file(path[i])
+        content_compare = read_file(path_compare[i])
+        assert content_compare == content
+        i += 1
+
