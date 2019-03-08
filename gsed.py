@@ -97,8 +97,7 @@ class Gsed:
                             and file != "." and file != ".."):
                         dirs_tmp.append(path)
         self.dirs = dirs_tmp
-        for file in self.files:
-            self.search_replace_files()
+        self.search_replace_files()
         if self.options.flag_recursive == True:
             self.search_replace_dirs()
 
@@ -143,8 +142,8 @@ def main():
         sys.exit(1)
 
     gsed = Gsed(args, options)
-    gsed.print()
-    #gsed.search_replace()
+    #gsed.print()
+    gsed.search_replace()
     sys.exit(0)
 
 

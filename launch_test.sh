@@ -3,6 +3,7 @@
 # make test
 cd tests/
 pytest test_basics.py
+pytest test_recursive.py
 
 # reset file
 cd ..
