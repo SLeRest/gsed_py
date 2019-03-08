@@ -26,9 +26,6 @@ class Gsed:
         self.options = options
 
     # deal with link TODO
-    # need path well formated
-    #   /path/path2/file1/ -> /path/path2/file1
-    #   /path//path2///file1/// -> /path/path2/file1
     def init_loop_args(self, args):
         is_path = False
         for arg in args:
@@ -41,13 +38,10 @@ class Gsed:
                     error_handler("File not found: " + arg)
                 elif os.path.isfile(arg):
                     is_path = True
-                    self.files.append(arg)
+                    self.files.append(os.path.normpath(os.path.relpath(arg)))
                 elif os.path.isdir(arg):
                     is_path = True
-                    if arg == "../" or arg == "./":
-                        self.dirs.append("..") if arg == "../" else self.dirs.append(".")
-                        continue
-                    self.dirs.append(arg)
+                    self.dirs.append(os.path.normpath(os.path.relpath(arg)))
                 else:
                     error_handler("Wrong type of file: " + arg)
         self.dirs.append(".") if not is_path else self.remove_duplicates()
@@ -149,8 +143,8 @@ def main():
         sys.exit(1)
 
     gsed = Gsed(args, options)
-    #gsed.print()
-    gsed.search_replace()
+    gsed.print()
+    #gsed.search_replace()
     sys.exit(0)
 
 
