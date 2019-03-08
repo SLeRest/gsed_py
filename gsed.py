@@ -42,6 +42,8 @@ class Gsed:
                 elif os.path.isdir(arg):
                     is_path = True
                     self.dirs.append(os.path.normpath(os.path.relpath(arg)))
+                elif os.path.islink(arg):
+                    error_handler("Don't deal with link yet: " + arg)
                 else:
                     error_handler("Wrong type of file: " + arg)
         self.dirs.append(".") if not is_path else self.remove_duplicates()
@@ -89,14 +91,15 @@ class Gsed:
             parse_dir = [d for d in listdir(dirs)]
             for file in parse_dir:
                 path = dirs + "/" + file
-                print(path)
-                if os.path.isfile(path):
+                if (os.path.isfile(path) and
+                    (file[0] != '.' or self.options.flag_all)):
                     self.files.append(path)
                 elif os.path.isdir(path):
                     if (self.options.flag_recursive and
                             (file[0] != '.' or self.options.flag_all)):
                         dirs_tmp.append(path)
         self.dirs = dirs_tmp
+        print(self.files)
         self.search_replace_files()
         if self.options.flag_recursive:
             self.search_replace_dirs()
@@ -143,7 +146,7 @@ def main():
 
     gsed = Gsed(args, options)
     # debug
-    #gsed.print()
+    gsed.print()
     gsed.search_replace()
     sys.exit(0)
 

@@ -10,6 +10,7 @@ def read_file(path):
     file.close()
     return content
 
+# simple file in arg no opt
 def test_basic_case1():
     path = "../tests_files/basic/case1/t/1"
     path_compare = "../tests_files/basic/case1/tcompare/1"
@@ -20,6 +21,7 @@ def test_basic_case1():
     content_compare = read_file(path_compare)
     assert content_compare == content
 
+# simple path in arg no opt
 def test_basic_case2():
     dir_path = "../tests_files/basic/case2/t"
     dir_path_compare = "../tests_files/basic/case2/tcompare"
@@ -33,6 +35,7 @@ def test_basic_case2():
     ]
     res = subprocess.run("python ../gsed.py lol mdr " + dir_path,
                          shell=True, capture_output=True)
+    print(res)
     assert res.returncode == 0
     i = 0
     while i < len(paths):
@@ -40,3 +43,30 @@ def test_basic_case2():
         content_compare = read_file(paths_compare[i])
         assert content_compare == content
         i += 1
+
+# hidded file in arg opt all
+def test_basic_case3():
+    dir_path = "../tests_files/basic/case3/t"
+    dir_path_compare = "../tests_files/basic/case3/tcompare"
+    path = dir_path + "/.1"
+    path_compare = dir_path_compare + "/.1"
+    res = subprocess.run("python ../gsed.py -a lol mdr " + dir_path,
+                         shell=True, capture_output=True)
+    assert res.returncode == 0
+    content = read_file(path)
+    content_compare = read_file(path_compare)
+    assert content_compare == content
+
+# hidded file in arg no opt
+def test_basic_case4():
+    dir_path = "../tests_files/basic/case4/t"
+    dir_path_compare = "../tests_files/basic/case4/tcompare"
+    path = dir_path + "/.1"
+    path_compare = dir_path_compare + "/.1"
+    res = subprocess.run("python ../gsed.py lol mdr " + dir_path,
+                         shell=True, capture_output=True)
+    assert res.returncode == 0
+    content = read_file(path)
+    content_compare = read_file(path_compare)
+    assert content_compare == content
+
