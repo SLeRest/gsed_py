@@ -89,16 +89,16 @@ class Gsed:
             parse_dir = [d for d in listdir(dirs)]
             for file in parse_dir:
                 path = dirs + "/" + file
+                print(path)
                 if os.path.isfile(path):
                     self.files.append(path)
-                elif os.path.isdir(file):
-                    if (self.options.flag_recursive == True and
-                            (file[0] != '.' or self.options.flag_all == True)
-                            and file != "." and file != ".."):
+                elif os.path.isdir(path):
+                    if (self.options.flag_recursive and
+                            (file[0] != '.' or self.options.flag_all)):
                         dirs_tmp.append(path)
         self.dirs = dirs_tmp
         self.search_replace_files()
-        if self.options.flag_recursive == True:
+        if self.options.flag_recursive:
             self.search_replace_dirs()
 
     def search_replace_files(self):
@@ -142,6 +142,7 @@ def main():
         sys.exit(1)
 
     gsed = Gsed(args, options)
+    # debug
     #gsed.print()
     gsed.search_replace()
     sys.exit(0)

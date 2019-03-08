@@ -21,14 +21,15 @@ def test_basic_case1():
     assert content_compare == content
 
 def test_basic_case2():
-    dir_path = "../tests_files/basic/case2/t/"
+    dir_path = "../tests_files/basic/case2/t"
+    dir_path_compare = "../tests_files/basic/case2/tcompare"
     paths =         [
-        "../tests_files/basic/case2/t/1",
-        "../tests_files/basic/case2/t/2"
+        dir_path + "/1",
+        dir_path + "/2"
     ]
     paths_compare = [
-        "../tests_files/basic/case2/tcompare/1",
-        "../tests_files/basic/case2/tcompare/2"
+        dir_path_compare + "/1",
+        dir_path_compare + "/2"
     ]
     res = subprocess.run("python ../gsed.py lol mdr " + dir_path,
                          shell=True, capture_output=True)
