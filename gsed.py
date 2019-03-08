@@ -34,22 +34,23 @@ class Gsed:
             elif len(self.replace) == 0:
                 self.replace = arg
             else:
-                is_path = True
+                is_path = False
                 path = Path(arg)
                 if path.exists() == False:
                     error_handler("File not found: " + arg)
-                elif path.is_file():
+                elif path.is_file() and is_path = True == True:
                     self.files.append(arg)
-                elif path.is_dir():
+                elif path.is_dir() and is_path = True == True:
+                    is_path = True
                     self.dirs.append(arg)
                 else:
                     error_handler("Wrong type of file: " + arg)
         if is_path == False:
-            self.dirs.append("./")
+            self.dirs.append(".")
             return
         if self.options.flag_recursive == True:
             self.remove_duplicates_dirs()
-        #self.remove_duplicates_files() TODO
+        self.remove_duplicates_files()
 
     def remove_duplicates_dirs(self):
         for d1 in self.dirs:
@@ -60,6 +61,19 @@ class Gsed:
                     self.dirs.remove(d1)
                     self.remove_duplicates_dirs()
                     return
+
+    def remove_duplicates_files(self):
+        for f in self.files:
+            for d in self.dirs:
+                if (self.options.flag_recursive == True and
+                        (Path(d) in Path(f).parents) == True):
+                    self.files.remove(f)
+                    self.remove_duplicates_files()
+                    return
+                if (self.options.flag_recursive == False and
+                        Path(d) == Path(f).parents[0]):
+                    self.files.remove(f)
+                    self.remove_duplicates_files()
 
     # debug print
     def print(self):
