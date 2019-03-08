@@ -26,57 +26,58 @@ class Gsed:
         self.options = options
 
     # deal with link TODO
+    # need path well formated
+    #   /path/path2/file1/ -> /path/path2/file1
+    #   /path//path2///file1/// -> /path/path2/file1
     def init_loop_args(self, args):
         is_path = False
         for arg in args:
-            if len(self.search) == 0:
+            if not len(self.search):
                 self.search = arg
-            elif len(self.replace) == 0:
+            elif not len(self.replace):
                 self.replace = arg
             else:
-                is_path = False
-                path = Path(arg)
-                if path.exists() == False:
+                if not os.path.exists(arg):
                     error_handler("File not found: " + arg)
-                elif path.is_file() == True:
+                elif os.path.isfile(arg):
                     is_path = True
                     self.files.append(arg)
-                elif path.is_dir():
+                elif os.path.isdir(arg):
                     is_path = True
+                    if arg == "../" or arg == "./":
+                        self.dirs.append("..") if arg == "../" else self.dirs.append(".")
+                        continue
                     self.dirs.append(arg)
                 else:
                     error_handler("Wrong type of file: " + arg)
-        if is_path == False:
-            self.dirs.append(".")
-            return
+        self.dirs.append(".") if not is_path else self.remove_duplicates()
+
+    def remove_duplicates(self):
         self.remove_duplicates_dirs()
         self.remove_duplicates_files()
 
     def remove_duplicates_dirs(self):
-        if self.options.flag_recursive == True:
+        if self.options.flag_recursive:
             for d1 in self.dirs:
                 for d2 in self.dirs:
                     if d2 == d1:
                         continue
-                if (Path(d2) in Path(d1).parents) == True:
-                    self.dirs.remove(d1)
-                    self.remove_duplicates_dirs()
-                    return
+                    if (Path(d2) in Path(d1).parents):
+                        self.dirs.remove(d1)
+                        return self.remove_duplicates_dirs()
         self.dirs = list(set(self.dirs))
 
     def remove_duplicates_files(self):
         for f in self.files:
             for d in self.dirs:
-                if (self.options.flag_recursive == True and
-                        (Path(d) in Path(f).parents) == True):
+                if (self.options.flag_recursive and
+                        (Path(d) in Path(f).parents)):
                     self.files.remove(f)
-                    self.remove_duplicates_files()
-                    return
-                if (self.options.flag_recursive == False and
+                    return self.remove_duplicates_files()
+                if (not self.options.flag_recursive and
                         Path(d) == Path(f).parents[0]):
                     self.files.remove(f)
-                    self.remove_duplicates_files()
-                    return
+                    return self.remove_duplicates_files()
         self.files = list(set(self.files))
 
     # debug print
@@ -85,6 +86,7 @@ class Gsed:
         print("files:\"", self.files, "\"dirs:", self.dirs)
         print("options:", self.options)
 
+    # c'est moche ici TODO
     def search_replace_dirs(self):
         if len(self.dirs) == 0:
             return
@@ -147,8 +149,8 @@ def main():
         sys.exit(1)
 
     gsed = Gsed(args, options)
-    gsed.print()
-    #gsed.search_replace()
+    #gsed.print()
+    gsed.search_replace()
     sys.exit(0)
 
 
